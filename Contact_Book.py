@@ -58,7 +58,7 @@ def contact_search(query):
     results_qty = 0
     for key in contact_book:
         for nest_key in contact_book[key]:
-            if contact_book[key][nest_key] == query:
+            if contact_book[key][nest_key].lower() == query.lower():
                 results_qty = results_qty + 1
                 search_results[results_qty] = contact_book[key]
     print('\n< Found ' + str(results_qty) + ' result(s) >\n')
