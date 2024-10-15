@@ -9,60 +9,73 @@ contact_book = {}
 ##      Methods to request info
 
 def get_fname():
-    print('Enter contact first name:')
-    fname = input()
-    return fname
+    return input('Enter contact first name: ')
 
 def get_lname():
-    print('Enter contact last name:')
-    lname = input()
-    return lname
+    return input('Enter contact last name: ')
 
 def get_number():
-    print('Enter contact phone number:')
-    number = input()
-    return number
+    return input('Enter contact phone number: ')
 
 def get_email():
-    print('Enter contact email:')
-    email = input()
-    return email
+    return input('Enter contact email: ')
 
 ##       Printers
 
 def print_dict(dict):
     for key in dict.keys():
-        print(key + ': ' + dict[key])
+        print(f'{key}: {dict[key]}')
 
 def print_contact_book(dict):
     for key in dict.keys():
-        print('Entry: ' + str(key))
+        print(f'Entry: {key}')
         print_dict(dict[key])
         print(' ')
 
 ##      Create dictionary out of values
 
 def make_dict(fname, lname, number, email):
-    dict = {
+    return {
         "First name":fname,
         "Last name":lname,
         "Phone number":number,
         "Email address":email
     }
-    return dict
 
 ##      Search and return contact book of results
 
 def contact_search(query):
     search_results = {}
     results_qty = 0
-    for key in contact_book:
-        for nest_key in contact_book[key]:
-            if contact_book[key][nest_key].lower() == query.lower():
-                results_qty = results_qty + 1
-                search_results[results_qty] = contact_book[key]
-    print('\n< Found ' + str(results_qty) + ' result(s) >\n')
+    query = query.lower()
+    for key, nested_dict in contact_book.items():
+        if any(query in value.lower() for value in nested_dict.values()):
+            results_qty += 1
+            search_results[results_qty] = nested_dict
+    print(f'\n< Found {results_qty} result(s) >\n')
     return search_results
+
+def search_and_select_contact():
+    query = input('Enter search query: ')
+    results = contact_search(query)
+
+    if not results:
+        print('\n...No results found...\n')
+        return None
+
+    print_contact_book(results)
+
+    try:
+        selection = input('Enter contact number: ')
+        selected_contact = results.get(int(selection))
+        if selected_contact:
+            return selected_contact
+        else:
+            print('\n...Invalid selection...\n')
+            return None
+    except ValueError:
+        print('\n...Invalid input, please enter a number...\n')
+        return None
 
 ################################################################################
 ##      1. Create contact
@@ -76,7 +89,7 @@ def create_contact():
     number = get_number()
     email = get_email()
 
-    name = fname + ' ' + lname
+    name = f'{fname} {lname}'
 
     dict = make_dict(fname, lname, number, email)
 
@@ -97,7 +110,7 @@ def create_contact():
         print('\nWould you like to update the existing contact?\n1 = yes\nAny key = no\n')
 
         choice = input()
-        
+
         if choice == '1':
             contact_book[name] = dict
             print('\n< Success! >\n')
@@ -110,47 +123,43 @@ def create_contact():
 ################################################################################
 
 def search_contact():
-    print('\n< Search for a contact >\nEnter search query:')
+    query = input('\n< Search for a contact >\nEnter search query: ')
 
-    query = input()
-
-    results = contact_search(query)
-
-    print_contact_book(results)
+    print_contact_book(contact_search(query))
 
 ################################################################################
 ##      3. Update contact
 ################################################################################
 
-def modify_contact(name, dict):
-    print('Current first name = ' + dict["First name"] + '...')
+def edit_contact(dict):
+    print(f'Current first name = {dict["First name"]}...')
     fname = get_fname()
-    print('Current last name = ' + dict["Last name"] + '...')
+    print(f'Current last name = {dict["Last name"]}...')
     lname = get_lname()
-    print('Current phone number = ' + dict["Phone number"] + '...')
+    print(f'Current phone number = {dict["Phone number"]}...')
     number = get_number()
-    print('Current email address = ' + dict["Email address"] + '...')
+    print(f'Current email address = {dict["Email address"]}...')
     email = get_email()
     dict = make_dict(fname, lname, number, email)
-    contact_book[name] = dict
+    return dict
+    
+
+def modify_contact(old, new):
+    name = f'{old['First name']} {old['Last name']}'
+    del contact_book[name]
+    new_name = f'{new['First name']} {new['Last name']}'
+    contact_book[new_name] = new
 
 def update_contact():
-    print('\n< Search for a contact >\n<   update a contact   >\nEnter search query:')
+    print('\n< Search for a contact >\n<   update a contact   >\n')
 
-    query = input()
+    results = search_and_select_contact()
 
-    results = contact_search(query)
-
-    print_contact_book(results)
-
-    print('\n< Select a contact to update >\nEnter entry number:')
-    selection = input()
-    selection = int(selection)
-    if selection in results.keys():
-        dict = results[selection]
-        name = dict['First name'] + ' ' + dict['Last name']
-        modify_contact(name, dict)
+    if isinstance(results, dict):
+        modified_contact = edit_contact(results)
+        modify_contact(results, modified_contact)
         print('\n< Success! >\n')
+
     else:
         print('\n...Invalid selection...\n')
 
@@ -167,20 +176,11 @@ def view_all_contacts():
 ################################################################################
 
 def delete_contact():
-    print('\n< Search for a contact >\n<   delete a contact   >\nEnter search query:')
+    print('\n< Search for a contact >\n<   delete a contact   >\n')
 
-    query = input()
-
-    results = contact_search(query)
-
-    print_contact_book(results)
-
-    print('< Select a contact to delete >\nEnter entry number:')
-    selection = input()
-    selection = int(selection)
-    if selection in results.keys():
-        dict = results[selection]
-        name = dict['First name'] + ' ' + dict['Last name']
+    results = search_and_select_contact()
+    if isinstance(results, dict):
+        name = f'{results['First name']} {results['Last name']}'
         del contact_book[name]
         print('\n< Success! >\n')
     else:
@@ -190,39 +190,36 @@ def delete_contact():
 ##      Front end
 ################################################################################
 
-def front_end():
-    print('''
-    Please make a selection from the following:
-    < 1 > Create a new contact
-    < 2 > Search for a contact
-    < 3 > Update an existing contact
-    < 4 > View all contacts
-    < 5 > Delete a contact
-    < 6 > Exit contact app
-          ''')
-    selection = input()
-    selection = str(selection)
-    if selection == '1':
-        create_contact()
-        front_end()
-    elif selection == '2':
-        search_contact()
-        front_end()
-    elif selection == '3':
-        update_contact()
-        front_end()
-    elif selection == '4':
-        view_all_contacts()
-        front_end()
-    elif selection == '5':
-        delete_contact()
-        front_end()
-    elif selection == '6':
-        print('< Thank you for using the contact app >')
-    else:
-        print('\n...Invalid selection...\n')
-        front_end()
-    
+def main_menu():
+    options = {
+
+        '1': create_contact,
+        '2': search_contact,
+        '3': update_contact,
+        '4': view_all_contacts,
+        '5': delete_contact,
+        '6': lambda: print('...Thank you for using the contact book app...\n')
+    }
+
+    while True:
+
+        print('''
+        Please make a selection from the following:
+        < 1 > Create a new contact
+        < 2 > Search for a contact
+        < 3 > Update an existing contact
+        < 4 > View all contacts
+        < 5 > Delete a contact
+        < 6 > Exit contact app
+        ''')
+        selection = input()
+        if selection in options:
+            options[selection]()
+            if selection == '6':
+                break
+        else:
+            print('\n...Invalid selection...\n')
+
 print('''
 ##############################################
 ##                                          ##
@@ -240,4 +237,4 @@ print('''
 ##      Initialize front end
 ################################################################################
 
-front_end()
+main_menu()
