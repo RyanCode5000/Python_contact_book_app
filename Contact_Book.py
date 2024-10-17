@@ -131,37 +131,56 @@ def search_contact():
 ##      3. Update contact
 ################################################################################
 
-def edit_contact(dict):
-    print(f'Current first name = {dict["First name"]}...')
-    fname = get_fname()
-    print(f'Current last name = {dict["Last name"]}...')
-    lname = get_lname()
-    print(f'Current phone number = {dict["Phone number"]}...')
-    number = get_number()
-    print(f'Current email address = {dict["Email address"]}...')
-    email = get_email()
-    dict = make_dict(fname, lname, number, email)
-    return dict
-    
+def modify_contact(old_key, updated_contact):
+    if old_key in contact_book:
+        del contact_book[old_key]
+    new_key = f"{updated_contact['First name']} {updated_contact['Last name']}"
+    contact_book[new_key] = updated_contact
 
-def modify_contact(old, new):
-    name = f'{old['First name']} {old['Last name']}'
-    del contact_book[name]
-    new_name = f'{new['First name']} {new['Last name']}'
-    contact_book[new_name] = new
 
 def update_contact():
-    print('\n< Search for a contact >\n<   update a contact   >\n')
+    print('\n< Search for a contact >\n<   Update a contact   >\n')
 
     results = search_and_select_contact()
+    if not results:
+        print("\n...No contact found...\n")
+        return
 
-    if isinstance(results, dict):
-        modified_contact = edit_contact(results)
-        modify_contact(results, modified_contact)
-        print('\n< Success! >\n')
+    print('\n< Current contact details: >\n')
+    print_dict(results)
 
-    else:
-        print('\n...Invalid selection...\n')
+    tmp_contact = results.copy()
+
+    options = {
+        '1': lambda: tmp_contact.update({'First name': get_fname()}),
+        '2': lambda: tmp_contact.update({'Last name': get_lname()}),
+        '3': lambda: tmp_contact.update({'Phone number': get_number()}),
+        '4': lambda: tmp_contact.update({'Email address': get_email()}),
+        '5': lambda: print('...Success!...\n'),
+        '6': lambda: print('...Returning to main menu...\n')
+    }
+
+    while True:
+        print('''
+        < 1 > Edit First name
+        < 2 > Edit Last name
+        < 3 > Edit Phone number
+        < 4 > Edit Email address
+        < 5 > Commit Editing
+        < 6 > Cancel Editing
+        ''')
+
+        selection = input().strip()
+        if selection in options:
+            options[selection]()
+            if selection == '5':
+                old_key = f"{results['First name']} {results['Last name']}"
+                modify_contact(old_key, tmp_contact)
+                break
+            elif selection == '6':
+                break
+        else:
+            print('\n...Invalid selection...\n')
 
 ################################################################################
 ##      4. View all contacts
