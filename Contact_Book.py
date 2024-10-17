@@ -52,15 +52,18 @@ def contact_search(query):
         if any(query in value.lower() for value in nested_dict.values()):
             results_qty += 1
             search_results[results_qty] = nested_dict
-    print(f'\n< Found {results_qty} result(s) >\n')
-    return search_results
+    if not search_results:
+        print('\n...No results found...\n')
+        return None
+    else:
+        print(f'\n< Found {results_qty} result(s) >\n')
+        return search_results
 
 def search_and_select_contact():
     query = input('Enter search query: ')
     results = contact_search(query)
 
     if not results:
-        print('\n...No results found...\n')
         return None
 
     print_contact_book(results)
@@ -124,8 +127,13 @@ def create_contact():
 
 def search_contact():
     query = input('\n< Search for a contact >\nEnter search query: ')
-
+    '''
     print_contact_book(contact_search(query))
+    '''
+    results = contact_search(query)
+    if results:
+        print_contact_book(results)
+
 
 ################################################################################
 ##      3. Update contact
@@ -143,7 +151,6 @@ def update_contact():
 
     results = search_and_select_contact()
     if not results:
-        print("\n...No contact found...\n")
         return
 
     print('\n< Current contact details: >\n')
@@ -239,6 +246,10 @@ def main_menu():
         else:
             print('\n...Invalid selection...\n')
 
+################################################################################
+##      Initialize front end
+################################################################################
+
 print('''
 ##############################################
 ##                                          ##
@@ -251,9 +262,5 @@ print('''
 ##       management at your fingertips      ##
 ##                                          ##
 ##############################################''')
-
-################################################################################
-##      Initialize front end
-################################################################################
 
 main_menu()
